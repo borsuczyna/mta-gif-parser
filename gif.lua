@@ -571,36 +571,9 @@ function dxCreateGIF(path, format, edge)
     object.frames_count = parameters.number_of_images
     object.comment = parameters.comment
     object.frame = 1
+    object.data = gif
     object.update = getTickCount()
     object.frames = {}
-    
-    for i = 1, object.frames_count do
-        local txt = dxCreateTexture(object.width, object.height, format, edge)
-        local pixels = dxGetTexturePixels(txt)
-
-        local matrix = gif.read_matrix()
-        for x = 1, w do
-            for y = 1, h do
-                if matrix[x] and matrix[x][y] then
-                    local color = matrix[x][y]
-                    if color == -1 then
-                        color = {0,0,0,0}
-                    else
-                        color = fromColor(tonumber(("0xFF%06x"):format(color)))
-                    end
-
-                    dxSetPixelColor(pixels, y, x, color[1], color[2], color[3], color[4])
-                end
-            end
-        end
-
-        dxSetTexturePixels(txt, pixels)
-        object.frames[i] = txt
-
-        gif.next_image()
-    end
-
-    gif.close()
 
     return object
 end
@@ -620,6 +593,47 @@ function getGIFFrames(element)
     return element.frames_count
 end
 
+function getGIFFrame(object, i)
+    if object.frames[i] then
+        return object.frames[i]
+    end
+
+    local size = 100
+    local txt = dxCreateTexture(size, size, format, edge)
+    local pixels = dxGetTexturePixels(txt)
+    local gif = object.data
+    local w, h = gif.get_width_height()
+
+    local xw, yh = 1, 1
+    local matrix = gif.read_matrix()
+    for x = 1, w, w/size do
+        for y = 1, h, h/size do
+            if matrix[x] and matrix[x][y] then
+                local color = matrix[x][y]
+                if color == -1 then
+                    color = {0,0,0,0}
+                else
+                    color = fromColor(tonumber(("0xFF%06x"):format(color)))
+                end
+
+                dxSetPixelColor(pixels, xw, yh, color[1], color[2], color[3], color[4])
+                xw = xw + 1
+                if xw > size then
+                    xw = 1
+                    yh = yh + 1
+                end
+            end
+        end
+    end
+
+    dxSetTexturePixels(txt, pixels)
+    object.frames[i] = txt
+
+    gif.next_image()
+
+    return txt
+end
+
 _dxDrawImage = dxDrawImage
 function dxDrawImage(x, y, w, h, image, delay, ...)
     if type(image) == "table" and image.element and image.element == "GIF" then
@@ -632,7 +646,8 @@ function dxDrawImage(x, y, w, h, image, delay, ...)
         end
 
         local frame = image.frame
-        _dxDrawImage(x, y, w, h, image.frames[frame], ...)
+        local frame = getGIFFrame(image, frame)
+        _dxDrawImage(x, y, w, h, frame, ...)
     else
         return _dxDrawImage(x, y, w, h, image, delay, ...)
     end
