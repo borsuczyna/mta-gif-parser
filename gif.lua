@@ -604,7 +604,7 @@ function getGIFFrame(object, i)
     local gif = object.data
     local w, h = gif.get_width_height()
 
-    local xw, yh = 1, 1
+    local xw, yh = 0, 0
     local matrix = gif.read_matrix()
     for x = 1, w, w/size do
         for y = 1, h, h/size do
@@ -619,7 +619,7 @@ function getGIFFrame(object, i)
                 dxSetPixelColor(pixels, xw, yh, color[1], color[2], color[3], color[4])
                 xw = xw + 1
                 if xw > size then
-                    xw = 1
+                    xw = 0
                     yh = yh + 1
                 end
             end
