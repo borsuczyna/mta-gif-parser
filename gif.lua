@@ -600,6 +600,8 @@ function dxCreateGIF(path, format, edge)
         gif.next_image()
     end
 
+    gif.close()
+
     return object
 end
 
