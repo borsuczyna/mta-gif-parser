@@ -15,3 +15,6 @@ addEventHandler("onClientRender", root, function()
     dxDrawImage(0, 0, 100, 100, gif, 150)
 end)
 ```
+
+# Special thanks
+Special thanks for Egor-Skriptunoff for gif parser
